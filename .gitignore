@@ -1,0 +1,9 @@
+# Node modules
+node_modules/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+*.log

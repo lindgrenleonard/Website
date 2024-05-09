@@ -1,8 +1,9 @@
 const http = require('http');
 const url = require('url');
+const fs = require('fs');
+const path = require('path');
 const db = require('./db/database');
 const { fetchCurrentTime } = require('./timeApi');  // Import the API call function
-
 
 // Utility functions
 function sendJSON(res, statusCode, data) {
@@ -13,6 +14,18 @@ function sendJSON(res, statusCode, data) {
 function sendText(res, statusCode, message) {
     res.writeHead(statusCode, {'Content-Type': 'text/plain'});
     res.end(message);
+}
+
+function sendFile(res, filePath, contentType) {
+    fs.readFile(filePath, (err, content) => {
+        if (err) {
+            res.writeHead(500);
+            res.end('File not found!');
+            return;
+        }
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(content);
+    });
 }
 
 function handleError(res, err) {
@@ -47,8 +60,8 @@ function handleDeleteData(req, res) {
         db.run(delReq, function(err) {
             if (err) {
                 console.error("Error deleting from table:", err.message);
-            sendText(res, 500, "Failed to delete from table");
-            return;
+                sendText(res, 500, "Failed to delete from table");
+                return;
             }
             sendText(res, 200, `All records deleted from ${body}. Rows affected: ${this.changes}`);
         });
@@ -63,13 +76,26 @@ function handleTimeRequest(req, res) {
             return;
         }
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end(`Current UTC Time: ${time}`);
+        res.end(`Current CEST Time: ${time}`);
     });
 }
 
 function handleDefault(req, res) {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.end(`<html><body><h1>My Web App</h1><button onclick="fetch('/data').then(response => response.json()).then(data => alert(JSON.stringify(data)))">Fetch Data</button></body></html>`);
+    // Try to serve static files
+    const parsedUrl = url.parse(req.url);
+    let pathname = `./public${parsedUrl.pathname}`;
+    const ext = path.extname(pathname);
+    let contentType = 'text/html';
+
+    if (ext === '.css') {
+        contentType = 'text/css';
+    } else if (ext === '.js') {
+        contentType = 'application/javascript';
+    } else if (ext.length === 0) {
+        pathname += '/index.html';
+    }
+
+    sendFile(res, pathname, contentType);
 }
 
 // Simple router
@@ -87,7 +113,7 @@ function router(req, res) {
         handleTimeRequest(req, res);
     } else {
         handleDefault(req, res);
-    } 
+    }
 }
 
 const server = http.createServer(router);
@@ -95,4 +121,3 @@ const server = http.createServer(router);
 server.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
 });
-

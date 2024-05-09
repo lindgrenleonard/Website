@@ -1,7 +1,7 @@
 const https = require('https');
 
 function fetchCurrentTime(callback) {
-    const url = 'https://worldtimeapi.org/api/timezone/Etc/UTC';
+    const url = 'https://worldtimeapi.org/api/timezone/CET';
 
     https.get(url, (res) => {
         let data = '';
