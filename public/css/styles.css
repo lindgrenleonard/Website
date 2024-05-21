@@ -19,11 +19,12 @@ header, footer {
     background: #20232a;
     color: #61dafb;
     padding: 1rem 0;
-    text-align: center;
+    text-align: left;
 }
 
 header {
     font-size: 2rem;
+    padding-left: 1rem;
 }
 
 footer {
@@ -31,6 +32,7 @@ footer {
     position: absolute;
     bottom: 0;
     width: 100%;
+    padding-left: 1rem;
 }
 
 /* Main content area */
